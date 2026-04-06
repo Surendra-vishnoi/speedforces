@@ -141,7 +141,7 @@ function parseQuestions(rawText) {
       continue;
     }
 
-    if (activeSection === "solution" && current.solutionLines.length > 0) {
+    if (activeSection === "solution") {
       current.solutionLines.push(line);
     }
   }
