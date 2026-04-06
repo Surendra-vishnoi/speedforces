@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EDO Trial Editorial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shape shape-a" aria-hidden="true"></div>
+    <div class="shape shape-b" aria-hidden="true"></div>
+
+    <main class="layout">
+      <header class="hero">
+        <p class="eyebrow">SpeedForces</p>
+        <h1>Question Hints and Answers</h1>
+        <p class="hero-text">
+          Click any question below, then open the Hints or Answer panel. 
+        </p>
+        <p class="credit-line">Prepared and hosted by <strong>CP Wing, IIIT Lucknow</strong>.</p>
+
+        <div class="toolbar">
+          <label for="search">Filter</label>
+          <input id="search" type="search" placeholder="Search by title, hint, or keyword..." />
+          <button id="expandAll" type="button">Expand all</button>
+          <button id="collapseAll" type="button">Collapse all</button>
+        </div>
+
+        <!-- <p id="status" class="status">Loading ans.txt...</p> -->
+      </header>
+
+      <section id="questionList" class="question-list" aria-live="polite"></section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
