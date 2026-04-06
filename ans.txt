@@ -1,60 +1,87 @@
 A. AND-OR Construction
-Hint 1: Recall the bitwise property (x & y) | (x ^ y) = x | y. Every bit in 'a' must be present in 'b'.
-Hint 2: If 'a' is a submask of 'b', you can simply use x = a and y = b.
-Solution: If (a & b) == a, output "a b". Otherwise, output -1.
+
+-----------------------
+Hint 1: Bitwise Logic. The property (x & y) is a submask of both x and y, and both x and y are submasks of (x | y). Therefore, 'a' must be a submask of 'b'.
+Hint 2: Checking Submasks. To check if 'a' is a submask of 'b', the condition (a & b) == a must be true.
+Detailed Solution: If 'a' is a submask of 'b', we can simply choose x = a and y = b. This works because a & b = a (given the condition) and a | b = b (also given the condition). If the condition (a & b) == a is false, no such x and y can exist, so output -1.
 
 B. Three Programmers
-Hint 1: To maximize equal elements, you must target an existing value a[i] where b[i] = 1.
-Hint 2: Sort the array and use a sliding window (two pointers) to find the largest range that can be increased to a[i] within budget k.
-Solution: Sort a and b. For each i where b[i]=1, find the largest window [j, i] such that the cost to raise all a[k] (where b[k]=1) to a[i] is <= k. Output the max (i - j + 1).
+--------------------
+Hint 1: Identifying the Target. To maximize equal elements, you must make them equal to some value V. This V must be an existing value in array 'a' where b[i] = 1, or an existing value where b[i] = 0 (if no operations are needed for the latter).
+Hint 2: Sliding Window. Sort the pairs (a[i], b[i]). For a fixed target value V = a[i] (where b[i]=1), we want to see how many previous elements a[j] (where b[j]=1) can be increased to V using k operations. 
+Detailed Solution: Sort the array. For each index i where b[i]=1, use two pointers to maintain a window [j, i]. The cost to make all elements in the window with b=1 equal to a[i] is calculated using prefix sums of the a[i] values. The answer is the maximum (number of elements in the window where b=1) + (count of elements outside the window that already equal a[i] and have b=0).
 
 C. Optimal Data Transmission
-Hint 1: The operation a[i] % x can change a[i] to any value in the range [0, (a[i]-1)/2].
-Hint 2: Work backwards from n to 1. If a[i] >= a[i+1], you must reduce a[i] to the largest possible value < a[i+1].
-Solution: Iterate i from n-1 down to 1. If a[i] >= a[i+1], set a[i] = (a[i]-1)/2. If still a[i] >= a[i+1] or a[i] < 0, output -1.
+----------------------------
+Hint 1: Modulo Range. Applying a[i] = a[i] % x where 1 <= x <= a[i] allows you to transform a[i] into any value in the range [0, floor((a[i]-1)/2)]. Note that values between this range and the original a[i] are unreachable.
+Hint 2: Greedy Strategy. To satisfy a[1] < a[2] < ... < a[n], it is optimal to process the array from right to left. If a[i] is already smaller than a[i+1], leave it. If not, reduce it to the largest possible value that is still < a[i+1].
+Detailed Solution: Traverse from i = n-1 down to 1. If a[i] >= a[i+1], we must perform an operation. The largest value we can get is floor((a[i]-1)/2). If this new value is still >= a[i+1], or if we need to reduce a value that is already 0, it's impossible. Output -1. Otherwise, count the operations.
 
 D. The War Hammer's Defense
-Hint 1: A sequence of N unique numbers can have at most ceil(N/2) peaks.
-Hint 2: Place the M largest numbers at alternating positions (1, 3, 5...) to act as peaks, then fill the gaps with remaining numbers in increasing order.
-Solution: If M > ceil(N/2) or M < 1, output -1. Sort A, place the M largest elements at odd indices, and fill the rest in ascending order.
+---------------------------
+Hint 1: Peak Constraints. The maximum number of peaks possible for N unique elements is ceil(N/2). For example, if N=4, the max peaks is 2 (e.g., [2, 1, 4, 3]). 
+Hint 2: Construction. Use the M largest numbers as the peaks. Place them at indices 1, 3, 5... until you have M peaks. 
+Detailed Solution: First, check if M > ceil(N/2) or M < 1. If so, output -1. Sort the array A. Place the largest M elements at the odd positions (1, 3, 5...) to ensure they are taller than their neighbors. Fill the remaining positions with the remaining elements in ascending order to ensure no new peaks are accidentally created.
 
 E. Echoes of the Original
-Hint 1: The problem asks for the number of distinct permutations of the characters in string S.
-Solution: Use the formula: n! / (count(char1)! * count(char2)! * ...). Output the result modulo 10^9 + 7.
+-------------------------
+Hint 1: Permutations of Multisets. Since the string was only rearranged, any valid original string is just a permutation of the scrambled string.
+Detailed Solution: The number of distinct permutations is given by the formula: N! / (f1! * f2! * ... * fk!), where fi is the frequency of each character. Use modular exponentiation to find the modular inverse of the denominator factorials modulo 10^9 + 7.
 
 F. Power-of-Two Pairs
-Hint 1: The condition (a[i] ^ a[j]) = 2^k means a[j] = a[i] ^ 2^k.
-Hint 2: For each number, check all 31 possible powers of two by XORing and checking a frequency map.
-Solution: Use a map to store frequencies. For each a[i], iterate k from 0 to 30, add map[a[i] ^ (1<<k)] to total, then increment map[a[i]].
+---------------------
+Hint 1: XOR Property. a[i] ^ a[j] = 2^k is equivalent to a[i] ^ 2^k = a[j].
+Hint 2: Iterating Powers. Since a[i] <= 10^9, there are only 31 possible values of 2^k (from 2^0 to 2^30).
+Detailed Solution: Use a frequency map (hash map or frequency array). Iterate through each element x in the array. For each x, iterate through all 31 possible values of p = 2^k. Check how many times (x ^ p) has appeared in the map so far and add that to the total. Then, increment the count of x in the map.
 
 G. InShayar and the Pewast Ellipses
-Hint 1: To minimize increments, sort the 2n integers and treat them as n pairs (a[i], b[i]).
-Hint 2: Ensure each pair (a[i], b[i]) is strictly greater than the previous pair (a[i-1], b[i-1]).
-Solution: Sort the 2n integers. For each pair at (2i, 2i+1), increment them to be at least (last_a + 1) and (last_b + 1). Sum the total increments.
+-----------------------------------
+Hint 1: Sorting and Pairing. To minimize increments, sort the 2n integers. To satisfy a[i] < a[i+1] and b[i] < b[i+1], we should generally pair the i-th smallest and (i+n)-th smallest values, or similar greedy pairings.
+Hint 2: Greedy Bound. For each pair (a[i], b[i]), a[i] must be at least a[i-1]+1 and b[i] must be at least b[i-1]+1.
+Detailed Solution: Sort the input array X. The most efficient way is to let the first n elements be potential a-axes and the last n elements be potential b-axes. Iterate i from 1 to n: a[i] = max(X[i], a[i-1]+1) and b[i] = max(X[i+n], b[i-1]+1). The cost is the sum of (a[i] - X[i]) + (b[i] - X[i+n]).
 
 H. The Counting of the Void
-Hint 1: The total MEX sum is minimized when 0 and 1 are placed at opposite ends of the permutation.
-Solution: The number of such permutations is 2 * (n - 2)! modulo 10^9 + 7.
+---------------------------
+Hint 1: Minimizing MEX. To minimize the total sum of MEX, we want the "0" and "1" to be part of as few subarrays as possible. This happens when they are at the extreme ends of the permutation.
+Hint 2: Placement. If 0 is at index 1 and 1 is at index N (or vice versa), the only subarray containing both will be the entire array (and those including the span).
+Detailed Solution: For n >= 2, the minimum MEX sum is achieved when 0 and 1 are at opposite ends. There are 2 ways to place 0 and 1 (0...1 or 1...0). The remaining (n-2) numbers can be placed in the middle in any order, which is (n-2)! ways. Total permutations = 2 * (n-2)! modulo 10^9 + 7.
 
 I. The Bet
-Hint 1: Gon can reach position c if and only if c is a multiple of the greatest common divisor of x and y.
-Solution: If c % gcd(x, y) == 0, output YES. Otherwise, output NO.
+----------
+Hint 1: GCD and Step Sizes. This is a classic application of the Linear Diophantine Equation. Gon can reach position 'c' if and only if 'c' is a multiple of the greatest common divisor of the allowed step sizes x and y.
+Detailed Solution: Calculate g = gcd(x, y). If c % g == 0, output YES. Otherwise, output NO. This works because any position Gon reaches will be of the form (m*x + n*y), and every such number is a multiple of gcd(x, y).
 
 J. The Swordsmith Village Siege
-Hint 1: Pick the K smallest Slayers and the K smallest Demons.
-Hint 2: To minimize the maximum sum, pair the smallest Slayer with the largest Demon (within the chosen K).
-Solution: Sort S and T. Take the first K of each. Output max(S[i] + T[K-1-i]) for i from 0 to K-1.
+-------------------------------
+Hint 1: Smallest Selection. To minimize the maximum sum, it is always optimal to choose the K smallest Slayers and the K smallest Fish Demons.
+Hint 2: Optimal Pairing. Once the K smallest are chosen from both sides, pair the smallest Slayer with the largest Demon among the selected sets to "balance" the Fatigue Index.
+Detailed Solution: Sort array S and array T in ascending order. Take the first K elements: S[0...K-1] and T[0...K-1]. The minimum maximum fatigue is found by checking all pairs (S[i] + T[K-1-i]) for i from 0 to K-1 and taking the maximum of those sums.
 
 K. Synchronizing TARS
-Hint 1: Convert the total Earth time (H, M, S) into total Earth seconds first.
-Solution: TotalSec = H*3600 + M*60 + S. LocalS = TotalSec % Sp, LocalM = (TotalSec / Sp) % Mp, LocalH = (TotalSec / (Sp * Mp)) % Hp.
+---------------------
+Hint 1: Unified Units. Convert the Earth time given (H, M, S) into a single value: total Earth seconds. TotalSeconds = (H * 3600) + (M * 60) + S.
+Hint 2: Successive Division. To get the local time, find how many planetary seconds remain, then minutes, then hours.
+Detailed Solution: 
+1. Total Earth Seconds = (H * 3600) + (M * 60) + S.
+2. Local Seconds = TotalSeconds % Sp.
+3. Total Local Minutes = TotalSeconds / Sp.
+4. Local Minutes = Total Local Minutes % Mp.
+5. Total Local Hours = Total Local Minutes / Mp.
+6. Local Hours = Total Local Hours % Hp. (Modulo Hp handles the day wrap-around).
 
 L. Hawkeye's Glance
-Hint 1: Use the squared distance D^2 = x^2 + y^2 to avoid precision issues with square roots.
-Hint 2: Use binary search (upper_bound) on the sorted squared radii to find the largest ring R_hit.
-Solution: For each arrow, find index i such that r[i]^2 is the largest value <= x^2 + y^2. Score = r[n] - r[i].
+-------------------
+Hint 1: Squared Distance. The distance squared is D^2 = x^2 + y^2. Use this to compare against the squared radii r[i]^2 to avoid floating point errors.
+Hint 2: Efficient Search. Since the radii are strictly increasing, use binary search (specifically `upper_bound` in C++ or `bisect_right` in Python) to find the largest ring radius R_hit that is <= the arrow's distance.
+Detailed Solution: For each arrow (x, y), calculate dist_sq = x*x + y*y. Binary search the sorted array of squared radii to find the largest r[i] such that r[i]^2 <= dist_sq. The score for that arrow is r[n] - r[i]. Sum the scores for all m arrows.
 
 M. AND-OR Pair Counting
-Hint 1: If (a & b) != a, then no such pair exists because a must be a submask of b.
-Hint 2: For every bit where a is 0 and b is 1, you have 2 choices (x=0, y=1 or x=1, y=0).
-Solution: If (a & b) != a, output 0. Otherwise, output 2^(number of set bits in (a ^ b)).
+-----------------------
+Hint 1: Bitwise Independence. Each bit position i is independent. We need (x_i & y_i) = a_i and (x_i | y_i) = b_i.
+Hint 2: Possible Combinations. 
+- If a_i=1 and b_i=1: (x_i, y_i) must be (1, 1). [1 choice]
+- If a_i=0 and b_i=0: (x_i, y_i) must be (0, 0). [1 choice]
+- If a_i=0 and b_i=1: (x_i, y_i) can be (0, 1) or (1, 0). [2 choices]
+- If a_i=1 and b_i=0: Impossible. [0 choices]
+Detailed Solution: First, check if (a & b) == a. If not, output 0. Otherwise, the number of pairs is 2^k, where k is the number of bit positions where a has a 0 and b has a 1. This k can be calculated as the number of set bits in (a ^ b).
+================================================================================

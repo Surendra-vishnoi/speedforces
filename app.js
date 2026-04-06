@@ -83,7 +83,7 @@ function parseQuestions(rawText) {
       return;
     }
 
-    const solution = current.solutionLines.join(" ").trim();
+    const solution = current.solutionLines.join("\n").trim();
     questions.push({
       code: current.code,
       title: current.title,
@@ -96,6 +96,10 @@ function parseQuestions(rawText) {
     const line = sourceLine.trim();
     if (!line) {
       activeSection = null;
+      continue;
+    }
+
+    if (/^[-=]{3,}$/.test(line)) {
       continue;
     }
 
@@ -123,15 +127,17 @@ function parseQuestions(rawText) {
       continue;
     }
 
-    const solutionMatch = line.match(/^Solution\s*:\s*(.+)$/i);
+    const solutionMatch = line.match(/^(?:Detailed\s+)?Solution\s*:\s*(.*)$/i);
     if (solutionMatch) {
-      current.solutionLines.push(solutionMatch[1].trim());
+      if (solutionMatch[1].trim()) {
+        current.solutionLines.push(solutionMatch[1].trim());
+      }
       activeSection = "solution";
       continue;
     }
 
     if (activeSection === "hint" && current.hints.length > 0) {
-      current.hints[current.hints.length - 1] += " " + line;
+      current.hints[current.hints.length - 1] += "\n" + line;
       continue;
     }
 
@@ -158,6 +164,15 @@ function buildSolutionMarkdown(solution) {
   }
 
   return solution;
+}
+
+function setStatus(message, isError = false) {
+  if (!statusEl) {
+    return;
+  }
+
+  statusEl.classList.toggle("error", isError);
+  statusEl.textContent = message;
 }
 
 function createDetails(title, markdownContent) {
@@ -217,7 +232,7 @@ function renderQuestions(questions) {
     empty.className = "empty";
     empty.textContent = "No questions could be parsed from ans.txt.";
     questionListEl.append(empty);
-    statusEl.textContent = "Parsed 0 questions from ans.txt.";
+    setStatus("Parsed 0 questions from ans.txt.", true);
     return;
   }
 
@@ -227,8 +242,7 @@ function renderQuestions(questions) {
   });
   questionListEl.append(fragment);
 
-  statusEl.classList.remove("error");
-  statusEl.textContent = `Loaded ${questions.length} questions from ans.txt.`;
+  setStatus(`Loaded ${questions.length} questions from ans.txt.`);
 
   applyFilter();
 }
@@ -251,9 +265,9 @@ function applyFilter() {
   }
 
   if (term) {
-    statusEl.textContent = `Showing ${visibleCount} of ${cards.length} questions.`;
+    setStatus(`Showing ${visibleCount} of ${cards.length} questions.`);
   } else {
-    statusEl.textContent = `Loaded ${cards.length} questions from ans.txt.`;
+    setStatus(`Loaded ${cards.length} questions from ans.txt.`);
   }
 }
 
@@ -269,7 +283,7 @@ async function initializePage() {
   let usedFallback = false;
 
   try {
-    statusEl.textContent = "Loading ans.txt...";
+    setStatus("Loading ans.txt...");
     const response = await fetch("./ans.txt", { cache: "no-store" });
     if (response.ok) {
       rawText = await response.text();
@@ -287,7 +301,9 @@ async function initializePage() {
   renderQuestions(questions);
 
   if (usedFallback) {
-    statusEl.textContent = `Loaded ${questions.length} questions from embedded fallback data (ans.txt fetch unavailable in this view).`;
+    setStatus(
+      `Loaded ${questions.length} questions from embedded fallback data (ans.txt fetch unavailable in this view).`
+    );
   }
 }
 
