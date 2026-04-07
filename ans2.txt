@@ -1,0 +1,174 @@
+================================================================================
+          OFFICIAL EDITORIAL: Fresher Cup(Qualifier) (9 QUESTIONS)
+================================================================================
+
+A. The Infinite Traffic Jam
+--------------------------------------------------------------------------------
+Hint 1: Identifying Convoy Leaders. A vehicle i becomes a "convoy leader" if its 
+       preferred speed a_i is strictly less than the actual speed of the 
+       vehicle directly in front of it. Since the speed of the vehicle in front 
+       is the minimum of all preferred speeds from 1 to i-1, vehicle i is a 
+       leader if and only if a_i < min(a_1, a_2, ..., a_{i-1}).
+Hint 2: Monotonic Management. When a speed a_k decreases, vehicle k might 
+       become a new leader. Furthermore, it might "absorb" existing leaders 
+       behind it if its new speed is now slower than theirs.
+Detailed Solution:
+1. Maintain a balanced BST or `std::set` containing the indices of all 
+   current convoy leaders.
+2. For each update (k, d):
+   - Update a_k = max(a_k - d, 1).
+   - Check if k is now a leader: find the existing leader immediately before 
+     index k in the set. If a_k is strictly less than that leader's speed, 
+     insert k into the set.
+   - Post-insertion cleanup: After adding k (or if k was already a leader), 
+     look at the leaders with indices > k. If any leader j > k has a_j >= a_k, 
+     then j is no longer a leader (it is now limited by k). Remove all such 
+     indices from the set until you hit a leader strictly slower than a_k.
+3. The number of convoys after the update is the size of the set.
+
+B. Stable Differences (Arithmetic Progressions)
+--------------------------------------------------------------------------------
+Hint 1: Local Differences. A sequence is an AP if the difference between 
+       consecutive elements is constant. Let d_i = a_{i+1} - a_i.
+Hint 2: Maximal Segments. If a subsegment a[l...r] has constant d_i, then all 
+       its sub-intervals are also APs. A segment of length L has L*(L+1)/2 
+       total subsegments.
+Detailed Solution:
+1. Every individual element (length 1) is an AP (n total).
+2. Every pair (length 2) is an AP (n-1 total).
+3. For lengths >= 3, we look for contiguous blocks where (a_{i+1} - a_i) is constant.
+4. Iterate through the differences d_i = a_{i+1} - a_i. Find the length L of 
+   the maximal contiguous segment of identical d_i.
+5. For a maximal segment of length L (which corresponds to L+1 elements in 
+   the original array), the number of AP subsegments of length >= 3 is 
+   calculated by (L * (L-1)) / 2.
+6. Total = n + (n-1) + sum of [L*(L-1)/2] for all maximal difference blocks.
+
+C. The Alchemist's Catalyst (Primorials & Ternary)
+--------------------------------------------------------------------------------
+Hint 1: Stable Ingredients. Using powers of 3 (max 2 each) is exactly 
+       equivalent to the ternary (base-3) representation of a number. The 
+       number of ingredients is the sum of the digits in base-3.
+Hint 2: Primorial Search. There are very few primorials under 10^12 (only 12). 
+       Since we can use at most one of each, we can brute force all 2^12 
+       combinations of Volatile Ingredients.
+Detailed Solution:
+1. Precompute primorials p_0# to p_11#.
+2. Iterate through all 4096 (2^12) possible subsets of primorials.
+3. For each subset:
+   - Sum the primorials in the subset (S_vol).
+   - If S_vol > n, skip.
+   - Let Remainder R = n - S_vol.
+   - Count the stable ingredients needed for R: Convert R to base-3 and sum 
+     its digits (e.g., if R=7, 7 in base-3 is 21, sum is 2+1=3).
+   - Total count = (number of primorials in subset) + (sum of ternary digits of R).
+4. Output the minimum total count found.
+
+D. Modified MEX (Meta-MEX)
+--------------------------------------------------------------------------------
+Hint 1: Meta-MEX logic. The color added is the smallest frequency 'f' not 
+       present in the set of current frequencies S = {count(0), count(1)...count(m)}.
+Hint 2: Equilibrium. If the color being added is > m, the frequencies of 
+       colors [0, m] do not change. This means the added color 'f' will 
+       remain the same for all subsequent k operations.
+Detailed Solution:
+1. Count the frequencies of all integers in [0, m]. Store them in a map or 
+   frequency array.
+2. Identify the set S of these frequencies. Find the smallest f >= 0 not in S.
+3. If f > m: The k dots added will all have color f. Since f > m, the 
+   existence of colors [0, m] is unaffected. The final MEX is simply the 
+   standard MEX of the original array.
+4. If f <= m: Adding color f increases its frequency. This changes the set S. 
+   Since k is up to 2*10^5, you can simulate this:
+   - Use a `std::set` to keep track of missing frequencies in S.
+   - For each of the k dots, find the current Meta-MEX 'f'.
+   - If f > m, stop early (all remaining dots will be color f).
+   - If f <= m, increment count(f), update S, and repeat.
+5. After k operations, find the smallest i in [0, m+1] such that count(i) == 0.
+
+E. Absolute Difference Sum
+--------------------------------------------------------------------------------
+Hint 1: Distributive Property. The formula is sum_i sum_j (j * |a_i - a_j|). 
+       This can be rearranged to sum_j [j * (sum_i |a_i - a_j|)].
+Detailed Editorial:
+1. The term sum_i |a_i - a_j| is the sum of distances from a_j to all 
+   other points in the array.
+2. Sorting for Distance: Let B be the sorted version of 'a'. For any point 
+   B_k, the sum of distances is:
+   Dist = (k * B_k - PrefixSum[k]) + ((TotalSum - PrefixSum[k]) - (n - k) * B_k)
+3. Algorithm:
+   - Sort 'a' to create B and calculate prefix sums of B.
+   - For each original index j from 1 to n:
+     - Find the position of original a[j] in the sorted array B.
+     - Calculate the distance sum for a[j] in O(1) using the prefix sum formula.
+     - Add (j * DistanceSum) to the total answer modulo 10^9+7.
+
+F. Aura Maxxing (Odd Sum Subarrays)
+--------------------------------------------------------------------------------
+Hint 1: Prefix Parity. A subarray sum a[i...j] is odd if PrefixSum[j] and 
+       PrefixSum[i-1] have different parities (one even, one odd).
+Hint 2: Length Constraint. We need j - (i-1) >= L, which means i-1 <= j - L.
+Detailed Solution:
+1. Calculate the prefix sum array P and convert to parity: P[i] = (sum a[1...i]) % 2.
+2. Iterate j from L to n:
+   - We need to count indices k (where k = i-1) such that 0 <= k <= j-L and 
+     P[k] != P[j].
+3. Maintain two global counters: `evens` and `odds`.
+4. At each step j, the new available k is (j-L). Update the counters based 
+   on P[j-L].
+5. If P[j] is 0 (even), add `odds` to the answer. If P[j] is 1 (odd), add `evens`.
+
+G. Equivalent Exchange: Optimal Sequence
+--------------------------------------------------------------------------------
+Hint 1: Normalization. Simplify every node (x, y) to its irreducible ratio 
+       (x/g, y/g) where g = gcd(x, y).
+Hint 2: Stack-based Greedy. This is a sequence reduction problem. Use a stack 
+       to store pairs of {ratio, count}.
+Detailed Solution:
+1. For each node, simplify the ratio.
+2. If the ratio matches the ratio on top of the stack, increment the top's count.
+3. If the top's count becomes exactly K, pop the stack and increment the 
+   transmutation counter.
+4. Crucially: After popping, the "new" top might now match the ratio of the 
+   next incoming node. This is handled naturally by the stack.
+5. After processing all n nodes, if the stack is not empty, it means some 
+   nodes remained. If the problem requires the floor to be *completely* empty, and the stack still has elements, output -1. Otherwise, output 
+   the transmutation count.
+
+H. Baba Bhangarh Singh's Magical Triplets
+--------------------------------------------------------------------------------
+Hint 1: Pythagorean Algebra. a^2 + b^2 = c^2 and a + b + c = n. Substituting 
+       c = n - a - b into the first equation gives:
+       a^2 + b^2 = (n - a - b)^2 
+       a^2 + b^2 = n^2 + a^2 + b^2 - 2na - 2nb + 2ab
+       0 = n^2 - 2na - 2nb + 2ab
+Hint 2: Solving for b. Rearrange to find b: b(2n - 2a) = n^2 - 2na.
+       b = (n^2 - 2na) / (2n - 2a).
+Detailed Solution:
+1. Iterate 'a' from 1 to n/3.
+2. For each 'a', calculate the numerator = n*n - 2*n*a and denominator = 2*n - 2*a.
+3. If numerator % denominator == 0, then b = numerator / denominator is an integer.
+4. Calculate c = n - a - b.
+5. Check if the conditions a < b < c and a, b, c > 0 hold.
+6. The first valid (a, b, c) you find will be the lexicographically smallest.
+7. If the loop finishes with no valid triplet, output -1.
+
+I. Monza Traffic Paradise
+--------------------------------------------------------------------------------
+Hint 1: Monotonicity. If a minimum gap G is possible, any gap G' < G is also 
+       possible. This allows for Binary Search on the answer.
+Hint 2: Greedy Placement. For a fixed G, place the first car at its earliest 
+       possible time S_1 = T_1. For every next car, place it at 
+       S_i = max(T_i, S_{i-1} + G).
+Detailed Solution:
+1. Binary search for G in the range [0, 10^9].
+2. For a candidate G, run a greedy check:
+   - Set current_time = T[0].
+   - For i from 1 to N-1:
+     - current_time += G.
+     - If current_time > T[i] + W, then G is too large (car i cannot wait 
+       that long). Return False.
+     - current_time = max(current_time, T[i]).
+   - If you finish the loop, return True.
+3. The answer is the maximum G that returns True.
+================================================================================

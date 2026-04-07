@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SpeedForces Editorial</title>
+    <title>Edotrial Hub | CP Wing IIIT Lucknow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,12 +18,31 @@
 
     <main class="layout">
       <header class="hero">
-        <p class="eyebrow">SpeedForces</p>
-        <h1>Question Hints and Answers</h1>
-        <p class="hero-text">
-          Click any question below, then open the Hints or Answer panel. 
+        <p id="eyebrow" class="eyebrow">SpeedForces</p>
+        <h1 id="heroTitle">Question Hints and Answers</h1>
+        <p id="heroText" class="hero-text">
+          Choose an edotrial set, then click any question below and open the Hint or Answer panel.
         </p>
         <p class="credit-line">Prepared and hosted by <strong>CP Wing, IIIT Lucknow</strong>.</p>
+
+        <div class="edition-switch" role="group" aria-label="Choose edotrial set">
+          <button
+            class="edition-btn is-active"
+            type="button"
+            data-edition="speedforces"
+            aria-pressed="true"
+          >
+            SpeedForces Edotrial
+          </button>
+          <button
+            class="edition-btn"
+            type="button"
+            data-edition="fresher-cup"
+            aria-pressed="false"
+          >
+            Fresher Cup Qualifier Edotrial
+          </button>
+        </div>
 
         <div class="toolbar">
           <label for="search">Filter</label>
@@ -32,7 +51,6 @@
           <button id="collapseAll" type="button">Collapse all</button>
         </div>
 
-        <!-- <p id="status" class="status">Loading ans.txt...</p> -->
       </header>
 
       <section id="questionList" class="question-list" aria-live="polite"></section>

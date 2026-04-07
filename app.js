@@ -3,8 +3,15 @@ const statusEl = document.getElementById("status");
 const searchEl = document.getElementById("search");
 const expandAllBtn = document.getElementById("expandAll");
 const collapseAllBtn = document.getElementById("collapseAll");
+const editionButtons = Array.from(document.querySelectorAll(".edition-btn"));
+const eyebrowEl = document.getElementById("eyebrow");
+const heroTitleEl = document.getElementById("heroTitle");
+const heroTextEl = document.getElementById("heroText");
 
-const embeddedFallback = `A. AND-OR Construction
+const baseHeroInstruction =
+  "Choose an edotrial set, then click any question below and open the Hint or Answer panel.";
+
+const speedForcesFallback = `A. AND-OR Construction
 Hint 1: Recall the bitwise property (x & y) | (x ^ y) = x | y. Every bit in 'a' must be present in 'b'.
 Hint 2: If 'a' is a submask of 'b', you can simply use x = a and y = b.
 Solution: If (a & b) == a, output "a b". Otherwise, output -1.
@@ -64,6 +71,73 @@ M. AND-OR Pair Counting
 Hint 1: If (a & b) != a, then no such pair exists because a must be a submask of b.
 Hint 2: For every bit where a is 0 and b is 1, you have 2 choices (x=0, y=1 or x=1, y=0).
 Solution: If (a & b) != a, output 0. Otherwise, output 2^(number of set bits in (a ^ b)).`;
+
+const fresherCupFallback = `A. The Infinite Traffic Jam
+Hint 1: A vehicle i is a convoy leader if a[i] is strictly less than every preferred speed before it.
+Hint 2: After reducing a[k], k may become a leader and can absorb some leaders behind it.
+Detailed Solution: Keep convoy leader indices in an ordered set. For each update, decrease a[k], test whether it should be inserted as a leader, then remove any later leaders with speed greater than or equal to a[k]. The number of convoys is the size of that set.
+
+B. Stable Differences (Arithmetic Progressions)
+Hint 1: A subarray is an AP if consecutive differences are equal.
+Hint 2: Count maximal contiguous blocks of identical differences.
+Detailed Solution: Length 1 and length 2 segments are always AP, adding n + (n-1). For difference blocks of length L in the difference array, contribute L*(L-1)/2 subarrays of length at least 3.
+
+C. The Alchemist's Catalyst (Primorials and Ternary)
+Hint 1: The number of powers of 3 needed for a value is the digit sum of its base-3 form.
+Hint 2: There are only 12 primorials up to 1e12, so subset brute force is feasible.
+Detailed Solution: Enumerate every subset of primorials, let S be subset sum. If S <= n, compute ternary digit sum of n-S and combine with subset size. Take minimum total ingredients.
+
+D. Modified MEX (Meta-MEX)
+Hint 1: At each operation, color added is the smallest frequency missing from frequency-set S.
+Hint 2: If this color is greater than m, future operations stabilize.
+Detailed Solution: Track counts for colors 0..m and maintain missing frequencies in a set. Simulate up to k operations, stopping early if chosen color exceeds m. Finally compute normal MEX of resulting counts.
+
+E. Absolute Difference Sum
+Hint 1: Rearrange as sum over j of j times distance-sum from a[j] to all elements.
+Hint 2: Distance-sum can be computed in O(1) per element after sorting and prefix sums.
+Detailed Solution: Sort values, build prefix sums, and for each original a[j], compute contribution from left and right sides in sorted order. Add j*distance modulo 1e9+7.
+
+F. Aura Maxxing (Odd Sum Subarrays)
+Hint 1: Subarray sum is odd when endpoint prefix parities differ.
+Hint 2: Enforce length >= L by only counting valid previous prefix indices.
+Detailed Solution: Build prefix parity array. While iterating ending index j, make prefix index j-L available and count opposite parity prefixes to add to the answer.
+
+G. Equivalent Exchange: Optimal Sequence
+Hint 1: Reduce each (x, y) to normalized ratio (x/g, y/g).
+Hint 2: Use stack entries of ratio and run-length.
+Detailed Solution: Push or merge matching ratio with stack top. Whenever run-length reaches K, pop and count one transmutation. At the end, if complete clearing is required and stack is non-empty, answer is -1.
+
+H. Baba Bhangarh Singh's Magical Triplets
+Hint 1: Use equations a^2 + b^2 = c^2 and a+b+c=n to derive b.
+Hint 2: Iterate a, test if derived b is integer and forms a<b<c.
+Detailed Solution: For each a from 1 to floor(n/3), compute numerator and denominator from the derived formula. If divisible, get b and c, validate positivity and ordering, and report first valid triple for lexicographically smallest answer.
+
+I. Monza Traffic Paradise
+Hint 1: Feasibility is monotonic in minimum gap G, so binary search applies.
+Hint 2: For fixed G, greedy scheduling is optimal.
+Detailed Solution: Binary search G. For each candidate, place each car at max(arrival time, previous start + G), and ensure it does not exceed arrival+W. Largest feasible G is the answer.`;
+
+const editions = {
+  speedforces: {
+    label: "SpeedForces",
+    heroTitle: "Question Hints and Answers",
+    heroText: "Classic SpeedForces edotrial set.",
+    filePath: "./ans.txt",
+    fileName: "ans.txt",
+    fallback: speedForcesFallback,
+  },
+  "fresher-cup": {
+    label: "Fresher Cup (Qualifier)",
+    heroTitle: "Official Editorial (9 Questions)",
+    heroText: "Newly updated Fresher Cup qualifier edotrial set.",
+    filePath: "./ans2.txt",
+    fileName: "ans2.txt",
+    fallback: fresherCupFallback,
+  },
+};
+
+let currentEditionKey = "speedforces";
+let latestLoadToken = 0;
 
 if (window.marked) {
   window.marked.setOptions({
@@ -127,7 +201,7 @@ function parseQuestions(rawText) {
       continue;
     }
 
-    const solutionMatch = line.match(/^(?:Detailed\s+)?Solution\s*:\s*(.*)$/i);
+    const solutionMatch = line.match(/^(?:Detailed\s+)?(?:Solution|Editorial)\s*:\s*(.*)$/i);
     if (solutionMatch) {
       if (solutionMatch[1].trim()) {
         current.solutionLines.push(solutionMatch[1].trim());
@@ -184,7 +258,11 @@ function createDetails(title, markdownContent) {
 
   const body = document.createElement("div");
   body.className = "markdown";
-  body.innerHTML = window.marked.parse(markdownContent);
+  if (window.marked && typeof window.marked.parse === "function") {
+    body.innerHTML = window.marked.parse(markdownContent);
+  } else {
+    body.textContent = markdownContent;
+  }
 
   details.append(summary, body);
   return details;
@@ -224,15 +302,26 @@ function createQuestionCard(question, order) {
   return card;
 }
 
+function getLoadedMessage(total) {
+  const activeEdition = editions[currentEditionKey];
+  return `Loaded ${total} questions from ${activeEdition.fileName}.`;
+}
+
+function showEmptyMessage(message) {
+  questionListEl.innerHTML = "";
+  const empty = document.createElement("p");
+  empty.className = "empty";
+  empty.textContent = message;
+  questionListEl.append(empty);
+}
+
 function renderQuestions(questions) {
   questionListEl.innerHTML = "";
 
   if (!questions.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty";
-    empty.textContent = "No questions could be parsed from ans.txt.";
-    questionListEl.append(empty);
-    setStatus("Parsed 0 questions from ans.txt.", true);
+    const activeEdition = editions[currentEditionKey];
+    showEmptyMessage(`No questions could be parsed from ${activeEdition.fileName}.`);
+    setStatus(`Parsed 0 questions from ${activeEdition.fileName}.`, true);
     return;
   }
 
@@ -242,14 +331,14 @@ function renderQuestions(questions) {
   });
   questionListEl.append(fragment);
 
-  setStatus(`Loaded ${questions.length} questions from ans.txt.`);
+  setStatus(getLoadedMessage(questions.length));
 
   applyFilter();
 }
 
 function applyFilter() {
   const cards = Array.from(questionListEl.querySelectorAll(".question-card"));
-  const term = searchEl.value.trim().toLowerCase();
+  const term = (searchEl?.value || "").trim().toLowerCase();
 
   if (!cards.length) {
     return;
@@ -265,9 +354,10 @@ function applyFilter() {
   }
 
   if (term) {
-    setStatus(`Showing ${visibleCount} of ${cards.length} questions.`);
+    const activeEdition = editions[currentEditionKey];
+    setStatus(`Showing ${visibleCount} of ${cards.length} questions in ${activeEdition.label}.`);
   } else {
-    setStatus(`Loaded ${cards.length} questions from ans.txt.`);
+    setStatus(getLoadedMessage(cards.length));
   }
 }
 
@@ -278,23 +368,77 @@ function setAllPanelsOpen(open) {
   });
 }
 
-async function initializePage() {
+function updateEditionUI(editionKey) {
+  const activeEdition = editions[editionKey];
+  if (!activeEdition) {
+    return;
+  }
+
+  if (eyebrowEl) {
+    eyebrowEl.textContent = activeEdition.label;
+  }
+
+  if (heroTitleEl) {
+    heroTitleEl.textContent = activeEdition.heroTitle;
+  }
+
+  if (heroTextEl) {
+    heroTextEl.textContent = baseHeroInstruction;
+  }
+
+  document.title = `${activeEdition.label} Edotrial | CP Wing IIIT Lucknow`;
+
+  editionButtons.forEach((button) => {
+    const isActive = button.dataset.edition === editionKey;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+async function loadEdition(editionKey) {
+  const activeEdition = editions[editionKey];
+  if (!activeEdition) {
+    return;
+  }
+
+  currentEditionKey = editionKey;
+  updateEditionUI(editionKey);
+
+  if (searchEl) {
+    searchEl.value = "";
+  }
+
+  const loadToken = ++latestLoadToken;
   let rawText = "";
   let usedFallback = false;
 
   try {
-    setStatus("Loading ans.txt...");
-    const response = await fetch("./ans.txt", { cache: "no-store" });
+    setStatus(`Loading ${activeEdition.fileName}...`);
+    const response = await fetch(activeEdition.filePath, { cache: "no-store" });
     if (response.ok) {
       rawText = await response.text();
     }
   } catch (error) {
-    console.warn("Could not fetch ans.txt directly; using embedded fallback.", error);
+    console.warn(`Could not fetch ${activeEdition.fileName} directly; using embedded fallback.`, error);
+  }
+
+  if (loadToken !== latestLoadToken) {
+    return;
   }
 
   if (!rawText.trim()) {
-    rawText = embeddedFallback;
-    usedFallback = true;
+    if (activeEdition.fallback && activeEdition.fallback.trim()) {
+      rawText = activeEdition.fallback;
+      usedFallback = true;
+    }
+  }
+
+  if (!rawText.trim()) {
+    showEmptyMessage(
+      `Could not load ${activeEdition.fileName}. Run the page through a local server or keep fallback data.`
+    );
+    setStatus(`Unable to load ${activeEdition.fileName}.`, true);
+    return;
   }
 
   const questions = parseQuestions(rawText);
@@ -302,13 +446,31 @@ async function initializePage() {
 
   if (usedFallback) {
     setStatus(
-      `Loaded ${questions.length} questions from embedded fallback data (ans.txt fetch unavailable in this view).`
+      `Loaded ${questions.length} questions from embedded fallback data (${activeEdition.fileName} fetch unavailable in this view).`
     );
   }
 }
 
-searchEl.addEventListener("input", applyFilter);
-expandAllBtn.addEventListener("click", () => setAllPanelsOpen(true));
-collapseAllBtn.addEventListener("click", () => setAllPanelsOpen(false));
+if (searchEl) {
+  searchEl.addEventListener("input", applyFilter);
+}
 
-initializePage();
+if (expandAllBtn) {
+  expandAllBtn.addEventListener("click", () => setAllPanelsOpen(true));
+}
+
+if (collapseAllBtn) {
+  collapseAllBtn.addEventListener("click", () => setAllPanelsOpen(false));
+}
+
+editionButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const nextEdition = button.dataset.edition;
+    if (!nextEdition || nextEdition === currentEditionKey) {
+      return;
+    }
+    loadEdition(nextEdition);
+  });
+});
+
+loadEdition(currentEditionKey);

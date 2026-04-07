@@ -100,6 +100,39 @@ h1 {
   color: var(--ink);
 }
 
+.edition-switch {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.edition-btn {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--ink);
+  text-align: center;
+  padding: 10px 12px;
+}
+
+.edition-btn:hover {
+  background: rgba(12, 122, 116, 0.14);
+  border-color: rgba(12, 122, 116, 0.35);
+}
+
+.edition-btn.is-active {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #ffffff;
+}
+
+.selected-set {
+  margin: 10px 0 0;
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .toolbar {
   margin-top: 18px;
   display: grid;
@@ -286,6 +319,10 @@ details[open] summary::before {
 
   .toolbar {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .edition-switch {
+    grid-template-columns: 1fr;
   }
 
   .toolbar label {
